@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Results - GameHub</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="has-bottom-nav">
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <a href="index.html" class="logo">
+        <span class="logo-icon"><i class="fa-solid fa-gamepad"></i></span>
+        GameHub
+      </a>
+
+      <nav class="navbar-links" id="navbarLinks">
+        <a href="index.html">Home</a>
+        <a href="games.html">Games</a>
+        <a href="#">News</a>
+        <a href="#">Reviews</a>
+      </nav>
+
+      <div class="navbar-right">
+        <form class="search-box" action="search.html" method="get">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" name="q" placeholder="Search games...">
+        </form>
+        <button class="icon-btn" aria-label="Notifications">
+          <i class="fa-regular fa-bell"></i>
+        </button>
+        <a href="login.html" class="avatar" aria-label="Account">
+          <i class="fa-solid fa-user"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+
+  <!-- ================= PAGE CONTENT ================= -->
+  <main class="container search-page">
+    <h1>Search Results</h1>
+    <p class="results-info" id="resultsInfo"></p>
+
+    <!-- search box for phones (the navbar one is hidden on small screens) -->
+    <form class="search-box page-search" action="search.html" method="get">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" name="q" placeholder="Search games...">
+    </form>
+
+    <div class="search-layout">
+
+      <!-- ===== Filters (left side) ===== -->
+      <aside class="filters">
+        <div class="filters-group">
+          <h3>Genre</h3>
+          <label class="filter-option"><input type="checkbox" name="genre" value="Action"> Action</label>
+          <label class="filter-option"><input type="checkbox" name="genre" value="RPG"> RPG</label>
+          <label class="filter-option"><input type="checkbox" name="genre" value="Adventure"> Adventure</label>
+          <label class="filter-option"><input type="checkbox" name="genre" value="Racing"> Racing</label>
+          <label class="filter-option"><input type="checkbox" name="genre" value="Sports"> Sports</label>
+          <label class="filter-option"><input type="checkbox" name="genre" value="Strategy"> Strategy</label>
+          <label class="filter-option"><input type="checkbox" name="genre" value="Simulation"> Simulation</label>
+          <label class="filter-option"><input type="checkbox" name="genre" value="Horror"> Horror</label>
+        </div>
+
+        <div class="filters-group">
+          <h3>Platform</h3>
+          <label class="filter-option"><input type="checkbox" name="platform" value="PC"> PC</label>
+          <label class="filter-option"><input type="checkbox" name="platform" value="PlayStation"> PlayStation</label>
+          <label class="filter-option"><input type="checkbox" name="platform" value="Xbox"> Xbox</label>
+        </div>
+
+        <div class="filters-group">
+          <h3>Price</h3>
+          <label class="filter-option"><input type="checkbox" name="price" value="free"> Free</label>
+          <label class="filter-option"><input type="checkbox" name="price" value="paid"> Paid</label>
+        </div>
+      </aside>
+
+      <!-- ===== Results (right side) - search.js fills this ===== -->
+      <div class="results-grid" id="resultsGrid"></div>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    GameHub - a practice project. Game artwork belongs to its publishers.
+  </footer>
+
+
+  <!-- ================= MOBILE BOTTOM MENU ================= -->
+  <nav class="bottom-nav">
+    <a href="index.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
+    <a href="games.html"><i class="fa-solid fa-gamepad"></i><span>Games</span></a>
+    <a href="#"><i class="fa-regular fa-newspaper"></i><span>News</span></a>
+    <a href="profile.html"><i class="fa-regular fa-user"></i><span>Profile</span></a>
+  </nav>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/search.js"></script>
+</body>
+</html>

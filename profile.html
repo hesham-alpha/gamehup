@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - GameHub</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="has-bottom-nav">
+
+  <div class="app-layout">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar" id="sidebar">
+      <a href="index.html" class="logo">
+        <span class="logo-icon"><i class="fa-solid fa-gamepad"></i></span>
+        GameHub
+      </a>
+
+      <nav class="sidebar-menu">
+        <a href="index.html"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="games.html"><i class="fa-solid fa-gamepad"></i> Games</a>
+        <a href="#"><i class="fa-regular fa-newspaper"></i> News</a>
+        <a href="#"><i class="fa-regular fa-star"></i> Reviews</a>
+      </nav>
+
+      <p class="sidebar-title">Account</p>
+      <nav class="sidebar-menu">
+        <a href="profile.html" class="active"><i class="fa-regular fa-user"></i> Profile</a>
+        <a href="#" id="sidebarWishlist"><i class="fa-regular fa-heart"></i> Wishlist</a>
+        <a href="#" id="sidebarReviews"><i class="fa-regular fa-comment"></i> Reviews</a>
+        <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
+        <a href="#" id="logoutLink"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a>
+      </nav>
+    </aside>
+
+    <!-- dark area behind the sidebar on phones -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+    <div class="app-main">
+
+      <!-- ================= TOP BAR ================= -->
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="topbar-title">My Profile</div>
+
+        <form class="search-box" action="search.html" method="get">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" name="q" placeholder="Search games...">
+        </form>
+        <a href="search.html" class="icon-btn mobile-search" aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </a>
+        <button class="icon-btn" aria-label="Notifications">
+          <i class="fa-regular fa-bell"></i>
+        </button>
+        <a href="login.html" class="avatar" aria-label="Account">
+          <i class="fa-solid fa-user"></i>
+        </a>
+      </header>
+
+
+      <!-- ================= PAGE CONTENT ================= -->
+      <main class="page-content">
+
+        <!-- Name and avatar (profile.js fills these) -->
+        <section class="profile-header">
+          <div class="profile-avatar" id="profileAvatar">G</div>
+          <div>
+            <h1 id="profileName">Guest Player</h1>
+            <p id="memberSince"></p>
+          </div>
+        </section>
+
+        <!-- Numbers -->
+        <section class="stats-row">
+          <div class="stat-card"><strong id="statPlayed">0</strong><span>Games Played</span></div>
+          <div class="stat-card"><strong id="statWishlist">0</strong><span>Wishlist</span></div>
+          <div class="stat-card"><strong id="statReviews">0</strong><span>Reviews</span></div>
+          <div class="stat-card"><strong id="statRating">0</strong><span>Avg. Rating</span></div>
+        </section>
+
+        <!-- Tabs -->
+        <section class="tabs">
+          <div class="tab-buttons">
+            <button class="tab-btn active" data-tab="played">Games Played</button>
+            <button class="tab-btn" data-tab="wishlist">Wishlist</button>
+            <button class="tab-btn" data-tab="reviews">Reviews</button>
+          </div>
+
+          <div class="tab-panel active" id="tab-played">
+            <h2 class="subheading">Recently Played</h2>
+            <div class="played-list" id="playedList"></div>
+          </div>
+
+          <div class="tab-panel" id="tab-wishlist">
+            <h2 class="subheading">Your Wishlist</h2>
+            <div class="played-list" id="wishlistList"></div>
+          </div>
+
+          <div class="tab-panel" id="tab-reviews">
+            <h2 class="subheading">Your Reviews</h2>
+            <p class="empty-text">You have not written any reviews yet.</p>
+          </div>
+        </section>
+
+      </main>
+
+    </div>
+  </div>
+
+
+  <!-- ================= MOBILE BOTTOM MENU ================= -->
+  <nav class="bottom-nav">
+    <a href="index.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
+    <a href="games.html"><i class="fa-solid fa-gamepad"></i><span>Games</span></a>
+    <a href="#"><i class="fa-regular fa-newspaper"></i><span>News</span></a>
+    <a href="profile.html" class="active"><i class="fa-regular fa-user"></i><span>Profile</span></a>
+  </nav>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

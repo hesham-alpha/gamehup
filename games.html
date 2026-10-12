@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Games Library - GameHub</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="has-bottom-nav">
+
+  <div class="app-layout">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar" id="sidebar">
+      <a href="index.html" class="logo">
+        <span class="logo-icon"><i class="fa-solid fa-gamepad"></i></span>
+        GameHub
+      </a>
+
+      <nav class="sidebar-menu">
+        <a href="index.html"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="games.html" class="active" id="allGamesLink"><i class="fa-solid fa-gamepad"></i> Games</a>
+        <a href="#"><i class="fa-regular fa-newspaper"></i> News</a>
+        <a href="#"><i class="fa-regular fa-star"></i> Reviews</a>
+      </nav>
+
+      <p class="sidebar-title">Categories</p>
+      <!-- games.js fills this with the category links -->
+      <nav class="sidebar-menu" id="sidebarCategories"></nav>
+    </aside>
+
+    <!-- dark area behind the sidebar on phones -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+    <div class="app-main">
+
+      <!-- ================= TOP BAR ================= -->
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="topbar-title">Games Library</div>
+
+        <form class="search-box" action="search.html" method="get">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" name="q" placeholder="Search games...">
+        </form>
+        <a href="search.html" class="icon-btn mobile-search" aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </a>
+        <button class="icon-btn" aria-label="Notifications">
+          <i class="fa-regular fa-bell"></i>
+        </button>
+        <a href="login.html" class="avatar" aria-label="Account">
+          <i class="fa-solid fa-user"></i>
+        </a>
+      </header>
+
+
+      <!-- ================= PAGE CONTENT ================= -->
+      <main class="page-content">
+        <h1 class="page-title" id="pageTitle">All Games</h1>
+        <p class="page-subtitle">Browse our incredible collection of games</p>
+
+        <!-- Platform chips + sort dropdown -->
+        <div class="filter-bar">
+          <div class="chip-list" id="platformFilters">
+            <button class="chip active" data-platform="All">All</button>
+            <button class="chip" data-platform="PC">PC</button>
+            <button class="chip" data-platform="PlayStation">PlayStation</button>
+            <button class="chip" data-platform="Xbox">Xbox</button>
+          </div>
+
+          <label class="sort-box">
+            Sort by:
+            <select id="sortSelect">
+              <option value="popularity">Popularity</option>
+              <option value="rating">Rating</option>
+              <option value="name">Name (A-Z)</option>
+              <option value="price">Price (low to high)</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- games.js fills this with game cards -->
+        <div class="games-grid" id="gamesGrid"></div>
+      </main>
+
+    </div>
+  </div>
+
+
+  <!-- ================= MOBILE BOTTOM MENU ================= -->
+  <nav class="bottom-nav">
+    <a href="index.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
+    <a href="games.html" class="active"><i class="fa-solid fa-gamepad"></i><span>Games</span></a>
+    <a href="#"><i class="fa-regular fa-newspaper"></i><span>News</span></a>
+    <a href="profile.html"><i class="fa-regular fa-user"></i><span>Profile</span></a>
+  </nav>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/games.js"></script>
+</body>
+</html>
