@@ -98,8 +98,15 @@ function parseCookies(header = "") {
 }
 
 function cookieOptions(req) {
-  const secure = process.env.NODE_ENV === "production" || req.headers["x-forwarded-proto"] === "https";
+  const secure = process.env.NODE_ENV === "production" || requestProtocol(req) === "https";
   return `Path=/; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;
+}
+
+function requestProtocol(req) {
+  const forwardedProtocol = req.headers["x-forwarded-proto"];
+  return typeof forwardedProtocol === "string" && forwardedProtocol
+    ? forwardedProtocol.split(",")[0].trim().toLowerCase()
+    : req.socket.encrypted ? "https" : "http";
 }
 
 function startSession(req, res, userId, remember) {
@@ -146,7 +153,8 @@ function ensureSameOrigin(req) {
   const origin = req.headers.origin;
   if (!origin) return;
   try {
-    if (new URL(origin).host !== req.headers.host) {
+    const expectedOrigin = new URL(`${requestProtocol(req)}://${req.headers.host}`).origin;
+    if (new URL(origin).origin !== expectedOrigin) {
       throw new HttpError(403, "This request was blocked.");
     }
   } catch (error) {
