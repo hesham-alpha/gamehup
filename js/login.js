@@ -3,7 +3,6 @@ const nameInput = document.getElementById("name");
 const nameField = document.getElementById("nameField");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
-const rememberBox = document.getElementById("remember");
 const formMessage = document.getElementById("formMessage");
 const passwordToggle = document.getElementById("passwordToggle");
 const submitButton = document.getElementById("submitButton");
@@ -14,14 +13,17 @@ const formSubtitle = document.getElementById("formSubtitle");
 
 let isRegistering = new URLSearchParams(window.location.search).get("mode") === "register";
 
-function showMessage(text) {
+function showMessage(text, success) {
   formMessage.textContent = text;
   formMessage.classList.add("show");
+  formMessage.classList.toggle("success", Boolean(success));
+  formMessage.setAttribute("role", success ? "status" : "alert");
 }
 
 function hideMessage() {
   formMessage.textContent = "";
-  formMessage.classList.remove("show");
+  formMessage.classList.remove("show", "success");
+  formMessage.setAttribute("role", "alert");
 }
 
 function setMode(registering) {
@@ -42,11 +44,10 @@ function setMode(registering) {
 function getNextPage() {
   const next = new URLSearchParams(window.location.search).get("next");
   if (!next) return "profile.html";
-
   try {
     const destination = new URL(next, window.location.href);
     const allowedPages = new Set(["index.html", "games.html", "game.html", "profile.html", "search.html"]);
-    const page = destination.pathname.slice(1);
+    const page = destination.pathname.split("/").filter(Boolean).pop();
     if (destination.origin !== window.location.origin || !allowedPages.has(page)) return "profile.html";
     return page + destination.search + destination.hash;
   } catch {
@@ -94,18 +95,30 @@ loginForm.addEventListener("submit", async function (event) {
 
   try {
     await authReady;
-    await apiRequest(isRegistering ? "/api/auth/register" : "/api/auth/login", {
-      method: "POST",
-      body: {
-        name,
+    const client = requireSupabase();
+    if (isRegistering) {
+      const { data, error } = await client.auth.signUp({
         email,
         password,
-        remember: rememberBox.checked
+        options: {
+          data: { name },
+          emailRedirectTo: new URL("index.html", window.location.href).href
+        }
+      });
+      if (error) throw error;
+      if (!data.session) {
+        showMessage("Account created. Check your email for the confirmation link, then sign in.", true);
+        submitButton.disabled = false;
+        submitButton.textContent = "Create Account";
+        return;
       }
-    });
+    } else {
+      const { error } = await client.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    }
     window.location.replace(getNextPage());
   } catch (error) {
-    showMessage(error.message || "Could not connect to GameHub. Start the server and try again.");
+    showMessage(error.message || "Could not connect to GameHub. Check your connection and try again.");
     submitButton.disabled = false;
     submitButton.textContent = isRegistering ? "Create Account" : "Sign In";
   }

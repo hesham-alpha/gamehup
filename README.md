@@ -1,26 +1,26 @@
 # GameHub
 
-GameHub is a small game-discovery site with account registration, sign-in, and a private wishlist for each account.
+GameHub is a static game-discovery site with Supabase accounts and a private wishlist for each signed-in user. GitHub Pages hosts the site; Supabase provides authentication and the wishlist database.
+
+## Supabase setup
+
+1. In the Supabase dashboard for this project, open **SQL Editor** and run [`supabase/schema.sql`](supabase/schema.sql). This creates the wishlist table and row-level security policies.
+2. Open **Authentication → URL Configuration** and set **Site URL** to:
+
+   `https://hesham-alpha.github.io/gamehup/`
+
+3. Add this **Redirect URL**:
+
+   `https://hesham-alpha.github.io/gamehup/index.html`
+
+4. In **Authentication → Providers → Email**, leave email confirmation enabled if you want users to verify their address. With confirmation enabled, new users must click the email link before signing in.
+
+The browser uses the Supabase project URL and publishable key from `js/supabase-client.js`. Publishable keys are intended for browser use; wishlist data stays protected by the row-level security policies in `supabase/schema.sql`. Never put a Supabase secret or service-role key in this repository.
 
 ## Run locally
 
-Requires Node.js 22.13 or newer. The server uses Node's built-in SQLite module, so there are no npm packages to install.
+Open `index.html` through a local static web server, such as the Live Server extension in VS Code. Supabase authentication redirects back to the configured site URL, so local sign-up email confirmation requires adding your local URL (for example `http://127.0.0.1:5500/index.html`) to Supabase's Redirect URLs.
 
-```sh
-node server.mjs
-```
+## Deploy
 
-Open <http://localhost:3000>. The first run creates `data/gamehub.sqlite` automatically. Set `PORT` to change the port or `DATABASE_PATH` to store the database elsewhere.
-
-## What's included
-
-- Account registration and sign-in with scrypt password hashing.
-- HTTP-only session cookies, sign-out, and a "Remember me" option.
-- A SQLite database for users, sessions, and per-user wishlist entries.
-- Authenticated wishlist endpoints used by the game detail and profile pages.
-
-## Hosting
-
-This project now needs a Node.js host; GitHub Pages can only serve the static files and cannot run the API or SQLite database. Deploy the repository to a Node.js service and attach persistent writable storage for the SQLite file. Set `DATABASE_PATH` to a file on that storage and `NODE_ENV=production` so session cookies use HTTPS. If the service runs behind a trusted reverse proxy and supplies `X-Forwarded-For`, set `TRUST_PROXY=true` for per-client sign-in throttling. Back up the database file as part of the host's storage plan.
-
-The existing catalog and game artwork remain static demo data in `js/data.js`. Password reset and social sign-in are not enabled because they require an email or identity-provider setup.
+The repository is already served by GitHub Pages. After the pull request is merged into the Pages deployment branch, the new sign-in and wishlist functionality will be available at <https://hesham-alpha.github.io/gamehup/>. Game catalog information remains static demo data in `js/data.js`.
