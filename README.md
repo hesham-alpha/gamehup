@@ -4,7 +4,7 @@ GameHub is a small game-discovery site with account registration, sign-in, and a
 
 ## Run locally
 
-Requires Node.js 22.5 or newer. The server uses Node's built-in SQLite module, so there are no npm packages to install.
+Requires Node.js 22.13 or newer. The server uses Node's built-in SQLite module, so there are no npm packages to install.
 
 ```sh
 node server.mjs
