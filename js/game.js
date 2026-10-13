@@ -105,12 +105,22 @@ function updateWishlistButton() {
   }
 }
 
-function setupWishlistButton() {
+async function setupWishlistButton() {
+  await authReady;
   updateWishlistButton();
 
-  wishlistButton.addEventListener("click", function () {
-    toggleWishlist(game.id);
-    updateWishlistButton();
+  wishlistButton.addEventListener("click", async function () {
+    const message = document.getElementById("wishlistMessage");
+    wishlistButton.disabled = true;
+    message.textContent = "";
+    try {
+      const updated = await toggleWishlist(game.id);
+      if (updated) updateWishlistButton();
+    } catch (error) {
+      message.textContent = error.message || "Could not update your wishlist. Try again.";
+    } finally {
+      wishlistButton.disabled = false;
+    }
   });
 }
 

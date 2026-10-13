@@ -1,82 +1,147 @@
 // ============================================================
-// main.js - code shared by every page
-// (load it AFTER data.js and BEFORE the page's own js file)
+// main.js - shared code loaded on every page
 // ============================================================
 
-
-// ---------- 1. BROKEN IMAGE FALLBACK ----------
-// If a game image cannot load (no internet, wrong link...),
-// show our placeholder instead of a broken icon.
 document.addEventListener("error", function (event) {
   const image = event.target;
-
   if (image.tagName === "IMG" && !image.dataset.failed) {
-    image.dataset.failed = "true";   // so we never try twice
+    image.dataset.failed = "true";
     image.src = "images/placeholder.svg";
   }
 }, true);
 
 
-// ---------- 2. SAVED DATA (user + wishlist) ----------
-// The browser's storage keeps this data even after closing the page.
-const USER_KEY = "gamehub_user";
-const WISHLIST_KEY = "gamehub_wishlist";
+// ---------- ACCOUNT AND WISHLIST ----------
+const supabaseClient = window.gameHubSupabase;
+let currentUser = null;
+let currentWishlist = [];
 
-// Returns the logged in user, or null if nobody is logged in
+function requireSupabase() {
+  if (!supabaseClient) {
+    throw new Error("GameHub could not connect to Supabase. Check the Supabase client script and project settings.");
+  }
+  return supabaseClient;
+}
+
+function normalizeUser(user) {
+  if (!user) return null;
+  const name = user.user_metadata && typeof user.user_metadata.name === "string"
+    ? user.user_metadata.name.trim()
+    : "";
+  return {
+    id: user.id,
+    name: name || (user.email ? user.email.split("@")[0] : "Player"),
+    email: user.email || "",
+    joined: new Date(user.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
+  };
+}
+
+async function refreshWishlist() {
+  if (!currentUser) {
+    currentWishlist = [];
+    return;
+  }
+  const { data, error } = await requireSupabase()
+    .from("wishlist")
+    .select("game_id")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  currentWishlist = data.map(function (row) { return Number(row.game_id); });
+}
+
+async function loadAccountState() {
+  try {
+    const { data, error } = await requireSupabase().auth.getSession();
+    if (error) throw error;
+    currentUser = normalizeUser(data.session && data.session.user);
+    if (currentUser) {
+      try {
+        await refreshWishlist();
+      } catch (wishlistError) {
+        currentWishlist = [];
+        console.warn("Could not load the wishlist. Make sure supabase/schema.sql has been run.", wishlistError.message);
+      }
+    }
+  } catch (error) {
+    currentUser = null;
+    currentWishlist = [];
+    console.warn(error.message || "Could not load the GameHub account.");
+  }
+  setupAvatars();
+}
+
+const authReady = loadAccountState();
+
 function getCurrentUser() {
-  const saved = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
-  return saved ? JSON.parse(saved) : null;
+  return currentUser;
 }
 
-function logout() {
-  localStorage.removeItem(USER_KEY);
-  sessionStorage.removeItem(USER_KEY);
-  window.location.href = "login.html";
-}
-
-// Returns a list of game ids, for example [1, 4, 9]
 function getWishlist() {
-  return JSON.parse(localStorage.getItem(WISHLIST_KEY)) || [];
+  return currentWishlist.slice();
 }
 
 function isInWishlist(gameId) {
-  return getWishlist().includes(gameId);
+  return currentWishlist.includes(Number(gameId));
 }
 
-// Add the game if it is not in the wishlist, remove it if it is
-function toggleWishlist(gameId) {
-  let wishlist = getWishlist();
+function loginUrlForCurrentPage() {
+  const page = window.location.pathname.split("/").filter(Boolean).pop() || "index.html";
+  const next = page + window.location.search + window.location.hash;
+  return "login.html?next=" + encodeURIComponent(next);
+}
 
-  if (wishlist.includes(gameId)) {
-    wishlist = wishlist.filter(function (id) {
-      return id !== gameId;
-    });
-  } else {
-    wishlist.push(gameId);
+async function toggleWishlist(gameId) {
+  await authReady;
+  if (!currentUser) {
+    window.location.href = loginUrlForCurrentPage();
+    return false;
   }
 
-  localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+  const id = Number(gameId);
+  let result;
+  if (isInWishlist(id)) {
+    result = await requireSupabase().from("wishlist").delete()
+      .eq("user_id", currentUser.id)
+      .eq("game_id", id);
+  } else {
+    result = await requireSupabase().from("wishlist").upsert(
+      { user_id: currentUser.id, game_id: id },
+      { onConflict: "user_id,game_id", ignoreDuplicates: true }
+    );
+  }
+  if (result.error) throw result.error;
+  await refreshWishlist();
+  document.dispatchEvent(new CustomEvent("wishlist:updated", { detail: getWishlist() }));
+  return true;
+}
+
+async function logout() {
+  try {
+    const { error } = await requireSupabase().auth.signOut();
+    if (error) throw error;
+  } catch (error) {
+    console.warn(error.message || "Could not sign out.");
+  } finally {
+    currentUser = null;
+    currentWishlist = [];
+    window.location.href = "login.html";
+  }
 }
 
 
-// ---------- 3. SMALL HTML BUILDERS ----------
-
-// ["RPG", "Open World"] -> <span class="tag">RPG</span> <span class="tag">Open World</span>
+// ---------- SMALL HTML BUILDERS ----------
 function createTags(tags) {
   return tags.map(function (tag) {
     return `<span class="tag">${tag}</span>`;
   }).join("");
 }
 
-// ["PC", "Xbox"] -> a Windows icon and an Xbox icon
 function createPlatformIcons(platforms) {
   return platforms.map(function (platform) {
     return `<i class="${platformIcons[platform]}" title="${platform}"></i>`;
   }).join("");
 }
 
-// The game card used on the home page and the games page.
-// "imageUrl" decides which picture is shown (tall cover or wide image).
 function createGameCard(game, imageUrl) {
   return `
     <a href="game.html?id=${game.id}" class="game-card">
@@ -93,28 +158,23 @@ function createGameCard(game, imageUrl) {
 }
 
 
-// ---------- 4. MOBILE MENU ----------
-// On phones the menu button opens the sidebar (if the page has one)
-// or the navbar links (if the page has a navbar).
+// ---------- MOBILE MENU ----------
 function setupMobileMenu() {
   const menuButton = document.getElementById("menuBtn");
   const navbarLinks = document.getElementById("navbarLinks");
   const sidebar = document.getElementById("sidebar");
   const overlay = document.getElementById("sidebarOverlay");
-
   if (!menuButton) return;
 
   menuButton.addEventListener("click", function () {
     if (sidebar) {
       sidebar.classList.toggle("open");
       overlay.classList.toggle("show");
-    } else {
+    } else if (navbarLinks) {
       navbarLinks.classList.toggle("open");
     }
   });
-
-  // tapping the dark area closes the sidebar
-  if (overlay) {
+  if (overlay && sidebar) {
     overlay.addEventListener("click", function () {
       sidebar.classList.remove("open");
       overlay.classList.remove("show");
@@ -123,32 +183,30 @@ function setupMobileMenu() {
 }
 
 
-// ---------- 5. AVATAR (top right circle) ----------
-// Logged in  -> first letter of the name, links to the profile page
-// Logged out -> user icon, links to the login page
+// ---------- ACCOUNT AVATARS ----------
 function setupAvatars() {
   const user = getCurrentUser();
-
   document.querySelectorAll(".avatar").forEach(function (avatar) {
     if (user) {
-      avatar.textContent = user.name.charAt(0).toUpperCase();
+      avatar.textContent = user.name.trim().charAt(0).toUpperCase();
       avatar.href = "profile.html";
+      avatar.setAttribute("aria-label", "Account: " + user.name);
+      avatar.title = user.name;
     } else {
       avatar.innerHTML = '<i class="fa-solid fa-user"></i>';
       avatar.href = "login.html";
+      avatar.setAttribute("aria-label", "Sign in");
+      avatar.removeAttribute("title");
     }
   });
 }
 
 
-// ---------- 6. TABS ----------
-// Used on the game details page and the profile page.
-// A button with data-tab="info" opens the panel with id="tab-info".
+// ---------- TABS ----------
 function openTab(tabName) {
   document.querySelectorAll(".tab-btn").forEach(function (button) {
     button.classList.toggle("active", button.dataset.tab === tabName);
   });
-
   document.querySelectorAll(".tab-panel").forEach(function (panel) {
     panel.classList.toggle("active", panel.id === "tab-" + tabName);
   });
@@ -162,8 +220,5 @@ function setupTabs() {
   });
 }
 
-
-// ---------- 7. START ----------
 setupMobileMenu();
-setupAvatars();
 setupTabs();
