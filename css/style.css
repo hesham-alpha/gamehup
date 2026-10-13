@@ -152,6 +152,11 @@ input:focus-visible {
   background: var(--primary-hover);
 }
 
+.btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
 .btn-outline {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -1131,6 +1136,13 @@ input:focus-visible {
 .profile-header p {
   font-size: 13px;
   color: var(--text-muted);
+}
+
+.wishlist-message {
+  min-height: 16px;
+  margin-top: 8px;
+  color: #f87171;
+  font-size: 12px;
 }
 
 .stats-row {

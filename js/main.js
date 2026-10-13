@@ -17,45 +17,93 @@ document.addEventListener("error", function (event) {
 }, true);
 
 
-// ---------- 2. SAVED DATA (user + wishlist) ----------
-// The browser's storage keeps this data even after closing the page.
-const USER_KEY = "gamehub_user";
-const WISHLIST_KEY = "gamehub_wishlist";
+// ---------- 2. API + ACCOUNT STATE ----------
+const API_BASE = window.GAMEHUB_API_BASE || "";
+let currentUser = null;
+let currentWishlist = [];
 
-// Returns the logged in user, or null if nobody is logged in
+async function apiRequest(path, options = {}) {
+  const headers = { Accept: "application/json", ...(options.headers || {}) };
+  const request = { ...options, credentials: "same-origin", headers };
+  if (options.body !== undefined && typeof options.body !== "string") {
+    headers["Content-Type"] = "application/json";
+    request.body = JSON.stringify(options.body);
+  }
+
+  let response;
+  try {
+    response = await fetch(API_BASE + path, request);
+  } catch {
+    throw new Error("GameHub can't reach its server. Start the Node server and try again.");
+  }
+
+  const data = await response.json().catch(function () { return {}; });
+  if (!response.ok) throw new Error(data.error || "The request could not be completed.");
+  return data;
+}
+
+async function loadAccountState() {
+  try {
+    const result = await apiRequest("/api/auth/me");
+    currentUser = result.user;
+    if (currentUser) {
+      const wishlist = await apiRequest("/api/wishlist");
+      currentWishlist = wishlist.gameIds;
+    } else {
+      currentWishlist = [];
+    }
+  } catch (error) {
+    currentUser = null;
+    currentWishlist = [];
+    console.warn(error.message);
+  }
+  setupAvatars();
+}
+
+const authReady = loadAccountState();
+
 function getCurrentUser() {
-  const saved = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
-  return saved ? JSON.parse(saved) : null;
+  return currentUser;
 }
 
-function logout() {
-  localStorage.removeItem(USER_KEY);
-  sessionStorage.removeItem(USER_KEY);
-  window.location.href = "login.html";
-}
-
-// Returns a list of game ids, for example [1, 4, 9]
 function getWishlist() {
-  return JSON.parse(localStorage.getItem(WISHLIST_KEY)) || [];
+  return currentWishlist.slice();
 }
 
 function isInWishlist(gameId) {
-  return getWishlist().includes(gameId);
+  return currentWishlist.includes(Number(gameId));
 }
 
-// Add the game if it is not in the wishlist, remove it if it is
-function toggleWishlist(gameId) {
-  let wishlist = getWishlist();
+function loginUrlForCurrentPage() {
+  const next = window.location.pathname.slice(1) + window.location.search;
+  return "login.html?next=" + encodeURIComponent(next || "profile.html");
+}
 
-  if (wishlist.includes(gameId)) {
-    wishlist = wishlist.filter(function (id) {
-      return id !== gameId;
-    });
-  } else {
-    wishlist.push(gameId);
+async function toggleWishlist(gameId) {
+  await authReady;
+  if (!currentUser) {
+    window.location.href = loginUrlForCurrentPage();
+    return false;
   }
 
-  localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+  const id = Number(gameId);
+  const method = isInWishlist(id) ? "DELETE" : "PUT";
+  const result = await apiRequest("/api/wishlist/" + encodeURIComponent(id), { method });
+  currentWishlist = result.gameIds;
+  document.dispatchEvent(new CustomEvent("wishlist:updated", { detail: getWishlist() }));
+  return true;
+}
+
+async function logout() {
+  try {
+    await apiRequest("/api/auth/logout", { method: "POST" });
+  } catch (error) {
+    console.warn(error.message);
+  } finally {
+    currentUser = null;
+    currentWishlist = [];
+    window.location.href = "login.html";
+  }
 }
 
 
@@ -124,18 +172,21 @@ function setupMobileMenu() {
 
 
 // ---------- 5. AVATAR (top right circle) ----------
-// Logged in  -> first letter of the name, links to the profile page
-// Logged out -> user icon, links to the login page
+// Logged in -> first letter of the name; signed out -> account icon
 function setupAvatars() {
   const user = getCurrentUser();
 
   document.querySelectorAll(".avatar").forEach(function (avatar) {
     if (user) {
-      avatar.textContent = user.name.charAt(0).toUpperCase();
+      avatar.textContent = user.name.trim().charAt(0).toUpperCase();
       avatar.href = "profile.html";
+      avatar.setAttribute("aria-label", "Account: " + user.name);
+      avatar.title = user.name;
     } else {
       avatar.innerHTML = '<i class="fa-solid fa-user"></i>';
       avatar.href = "login.html";
+      avatar.setAttribute("aria-label", "Sign in");
+      avatar.removeAttribute("title");
     }
   });
 }
@@ -165,5 +216,4 @@ function setupTabs() {
 
 // ---------- 7. START ----------
 setupMobileMenu();
-setupAvatars();
 setupTabs();
